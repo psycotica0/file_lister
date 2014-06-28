@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ghc Main && ./Main test
