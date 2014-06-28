@@ -1,6 +1,10 @@
 module Lister where
 
 import System.Directory (doesDirectoryExist, doesFileExist, getDirectoryContents)
+import Data.Bool.HT (if')
+import Control.Applicative (pure)
+import Data.Monoid (mconcat)
+import Data.Maybe (fromMaybe)
 
 data ListEntry = Directory FilePath [ListEntry] | File FilePath deriving (Show)
 
@@ -18,3 +22,9 @@ build_list path = handleDir =<< doesDirectoryExist path
 	buildDirectory = fmap $ fmap (Directory path) . sequence
 	getActualDirs = fmap (filter filterDirs) $ getDirectoryContents path
 
+remove_nothing :: [Maybe a] -> [a]
+remove_nothing list = fromMaybe [] $ mconcat $ fmap (fmap pure) list
+
+filter_files :: (FilePath -> Bool) -> ListEntry -> Maybe ListEntry
+filter_files pred file@(File path) = if' (pred path) (Just file) Nothing
+filter_files pred (Directory path files) = fmap (Directory path) $ mconcat $ fmap (fmap pure . filter_files pred) files
