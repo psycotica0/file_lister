@@ -1,4 +1,8 @@
-module Lister where
+module Lister (
+	ListEntry (..),
+	build_list,
+	filter_files,
+) where
 
 import System.Directory (doesDirectoryExist, doesFileExist, getDirectoryContents)
 import Data.Bool.HT (if')
@@ -21,9 +25,6 @@ build_list path = handleDir =<< doesDirectoryExist path
 	prependPath p = path ++ "/" ++ p
 	buildDirectory = fmap $ fmap (Directory path) . sequence
 	getActualDirs = fmap (filter filterDirs) $ getDirectoryContents path
-
-remove_nothing :: [Maybe a] -> [a]
-remove_nothing list = fromMaybe [] $ mconcat $ fmap (fmap pure) list
 
 filter_files :: (FilePath -> Bool) -> ListEntry -> Maybe ListEntry
 filter_files pred file@(File path) = if' (pred path) (Just file) Nothing
