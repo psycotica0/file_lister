@@ -33,7 +33,7 @@ filters = join . fmap (collapse_dirs <=< get_videos)
 
 sort_entries :: ListEntry -> ListEntry
 sort_entries f@(File _) = f
-sort_entries (Directory p children) = Directory p $ sort children
+sort_entries (Directory p children) = Directory p $ sort $ fmap sort_entries children
 
 maybe_merge :: Maybe ListEntry -> Maybe ListEntry -> Maybe ListEntry
 maybe_merge Nothing a = a
