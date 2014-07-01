@@ -45,7 +45,7 @@ build_list path = handleDir =<< doesDirectoryExist path
 	handleFile False = Nothing
 	filterDirs p = not $ "." `isPrefixOf` p
 	prependPath p = path ++ "/" ++ p
-	buildDirectory = fmap $ fmap (Directory path) . sequence
+	buildDirectory = fmap $ Just . Directory path . removeNothings
 	getActualDirs = fmap (filter filterDirs) $ getDirectoryContents path
 
 removeNothings :: [Maybe a] -> [a]
