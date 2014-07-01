@@ -18,7 +18,7 @@ html_template body = fromLazyByteString "<!DOCTYPE html><html><head><title>File 
 html_output :: ListEntry -> Builder
 html_output list = html_template $ fromLazyByteString "<h1>File Listing:</h1>" <> fromLazyByteString "<ol>" <> html_output_inner list <> fromLazyByteString "</ol>"
 	where
-	html_output_inner f@(File _) = mconcat $ fmap fromLazyByteString ["<li>", pack $ display_name f, "</li>"]
+	html_output_inner f@(File p) = mconcat $ fmap fromLazyByteString ["<li><a href=\"", pack $ p, "\">" , pack $ display_name f, "</a></li>"]
 	html_output_inner d@(Directory p children) = (mconcat $ fmap fromLazyByteString ["<li><h1>", pack $ display_name d, "</h1><ol>"]) <> mconcat (fmap html_output_inner children) <> fromLazyByteString "</ol></li>"
 
 empty_output :: Builder
