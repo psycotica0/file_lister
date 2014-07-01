@@ -4,6 +4,7 @@ module Lister (
 	filter_files,
 	prune_dirs,
 	collapse_dirs,
+	display_name,
 ) where
 
 import System.Directory (doesDirectoryExist, doesFileExist, getDirectoryContents)
@@ -11,9 +12,21 @@ import Data.Bool.HT (if')
 import Control.Applicative (pure)
 import Data.Monoid (mconcat)
 import Data.Maybe (fromMaybe)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, span)
 
 data ListEntry = Directory FilePath [ListEntry] | File FilePath deriving (Show)
+
+-- Currently, it's just basename
+display_name :: ListEntry -> String
+display_name (Directory p _) = basename p
+display_name (File p) = basename p
+
+basename :: FilePath -> FilePath
+basename = handle . break (== '/')
+	where
+	handle (x, []) = x
+	handle (x, "/") = x
+	handle (_, '/':xs) = basename xs
 
 build_list :: FilePath -> IO (Maybe ListEntry)
 build_list path = handleDir =<< doesDirectoryExist path
