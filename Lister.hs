@@ -80,4 +80,4 @@ post_process func (Directory path children) = func $ Directory path $ removeNoth
 merge :: ListEntry -> ListEntry -> ListEntry
 merge first@(File _) _ = first
 merge first@(Directory _ _) (File _) = first
-merge (Directory p c1) (Directory _ c2) = Directory p $ fmap (foldr1 $ flip merge) $ group $ sort $ c1 ++ c2
+merge (Directory p c1) (Directory _ c2) = Directory p $ fmap (foldr1 merge) $ group $ sort $ c1 ++ c2
