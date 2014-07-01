@@ -9,7 +9,7 @@ import Blaze.ByteString.Builder (Builder)
 import Blaze.ByteString.Builder.ByteString(fromLazyByteString)
 import Data.Monoid ((<>), mconcat)
 import Data.ByteString.Lazy.Char8 (pack)
-import Control.Monad (join)
+import Control.Monad (join, (<=<))
 
 html_template :: Builder -> Builder
 html_template body = fromLazyByteString "<!DOCTYPE html><html><head><title>File Listing</title></head><body>" <> body <> fromLazyByteString "</body></html>"
@@ -23,7 +23,10 @@ html_output list = html_template $ fromLazyByteString "<h1>File Listing:</h1>" <
 empty_output :: Builder
 empty_output = html_template $ fromLazyByteString "<h1>No Files Found</h1>"
 
+filters :: Maybe ListEntry -> Maybe ListEntry
+filters = join . fmap (collapse_dirs <=< get_videos)
+
 app :: Application
 app req cont = do
-	list <- fmap (join . fmap collapse_dirs) $ build_list "test"
+	list <- fmap filters $ build_list "test"
 	cont $ responseBuilder ok200 [] $ maybe empty_output html_output list
