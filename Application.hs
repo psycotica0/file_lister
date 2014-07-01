@@ -1,11 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Application where
 
-import Lister(build_list, collapse_dirs)
+import Lister(build_list, collapse_dirs, ListEntry(..))
 import Mime(get_videos)
-import Network.Wai (Application, responseLBS)
+import Network.Wai (Application, responseBuilder)
 import Network.HTTP.Types.Status(ok200)
-import Data.ByteString.Lazy.Char8(pack)
+import Blaze.ByteString.Builder (Builder)
+import Blaze.ByteString.Builder.ByteString(fromLazyByteString)
+import Data.Monoid ((<>), mconcat)
+import Data.ByteString.Lazy.Char8 (pack)
+import Control.Monad (join)
+
+html_template :: Builder -> Builder
+html_template body = fromLazyByteString "<!DOCTYPE html><html><head><title>File Listing</title></head><body>" <> body <> fromLazyByteString "</body></html>"
+
+html_output :: ListEntry -> Builder
+html_output list = html_template $ fromLazyByteString "<h1>File Listing:</h1>" <> fromLazyByteString "<ol>" <> html_output_inner list <> fromLazyByteString "</ol>"
+	where
+	html_output_inner (File p) = mconcat $ fmap fromLazyByteString ["<li>", pack p, "</li>"]
+	html_output_inner (Directory p children) = (mconcat $ fmap fromLazyByteString ["<li><h1>", pack p, "</h1><ol>"]) <> mconcat (fmap html_output_inner children) <> fromLazyByteString "</ol></li>"
+
+empty_output :: Builder
+empty_output = html_template $ fromLazyByteString "<h1>No Files Found</h1>"
 
 app :: Application
-app req cont = (cont . responseLBS ok200 [] . pack . show) =<< (fmap (fmap collapse_dirs) $ build_list "test")
+app req cont = do
+	list <- fmap (join . fmap collapse_dirs) $ build_list "test"
+	cont $ responseBuilder ok200 [] $ maybe empty_output html_output list
