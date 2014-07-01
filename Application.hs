@@ -10,7 +10,6 @@ import Blaze.ByteString.Builder.ByteString(fromLazyByteString)
 import Data.Monoid ((<>), mconcat)
 import Data.ByteString.Lazy.Char8 (pack)
 import Control.Monad (join, (<=<))
-import Control.Applicative ((<$>), (<*>))
 
 html_template :: Builder -> Builder
 html_template body = fromLazyByteString "<!DOCTYPE html><html><head><title>File Listing</title></head><body>" <> body <> fromLazyByteString "</body></html>"
@@ -32,7 +31,7 @@ maybe_merge Nothing a = a
 maybe_merge a Nothing = a
 maybe_merge (Just a) (Just b) = Just $ merge a b
 
-app :: Application
-app req cont = do
-	merged <- maybe_merge <$> build_list "test" <*> build_list "test2"
+app :: [FilePath] -> Application
+app roots req cont = do
+	merged <- fmap (foldr1 maybe_merge) $ mapM build_list roots
 	cont $ responseBuilder ok200 [] $ maybe empty_output html_output $ filters merged
