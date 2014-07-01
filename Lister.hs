@@ -5,6 +5,7 @@ module Lister (
 	prune_dirs,
 	collapse_dirs,
 	display_name,
+	merge,
 ) where
 
 import System.Directory (doesDirectoryExist, doesFileExist, getDirectoryContents)
@@ -12,7 +13,8 @@ import Data.Bool.HT (if')
 import Control.Applicative (pure)
 import Data.Monoid (mconcat)
 import Data.Maybe (fromMaybe)
-import Data.List (isPrefixOf, span)
+import Data.List (isPrefixOf, span, sort, group)
+import Data.Function (on)
 
 data ListEntry = Directory FilePath [ListEntry] | File FilePath deriving (Show)
 
@@ -20,6 +22,12 @@ data ListEntry = Directory FilePath [ListEntry] | File FilePath deriving (Show)
 display_name :: ListEntry -> String
 display_name (Directory p _) = basename p
 display_name (File p) = basename p
+
+instance Eq ListEntry where
+	(==) = (==) `on` display_name
+
+instance Ord ListEntry where
+	compare = compare `on` display_name
 
 basename :: FilePath -> FilePath
 basename = handle . break (== '/')
@@ -68,3 +76,8 @@ func_collapse_dirs d = Just d
 post_process :: (ListEntry -> Maybe ListEntry) -> ListEntry -> Maybe ListEntry
 post_process func e@(File _) = func e
 post_process func (Directory path children) = func $ Directory path $ removeNothings $ fmap (post_process func) children
+
+merge :: ListEntry -> ListEntry -> ListEntry
+merge first@(File _) _ = first
+merge first@(Directory _ _) (File _) = first
+merge (Directory p c1) (Directory _ c2) = Directory p $ fmap (foldr1 $ flip merge) $ group $ sort $ c1 ++ c2
