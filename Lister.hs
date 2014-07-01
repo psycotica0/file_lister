@@ -11,6 +11,7 @@ import Data.Bool.HT (if')
 import Control.Applicative (pure)
 import Data.Monoid (mconcat)
 import Data.Maybe (fromMaybe)
+import Data.List (isPrefixOf)
 
 data ListEntry = Directory FilePath [ListEntry] | File FilePath deriving (Show)
 
@@ -21,9 +22,7 @@ build_list path = handleDir =<< doesDirectoryExist path
 	handleDir False = fmap handleFile $ doesFileExist path
 	handleFile True = Just $ File path
 	handleFile False = Nothing
-	filterDirs "." = False
-	filterDirs ".." = False
-	filterDirs _ = True
+	filterDirs p = not $ "." `isPrefixOf` p
 	prependPath p = path ++ "/" ++ p
 	buildDirectory = fmap $ fmap (Directory path) . sequence
 	getActualDirs = fmap (filter filterDirs) $ getDirectoryContents path
@@ -56,4 +55,3 @@ func_collapse_dirs d = Just d
 post_process :: (ListEntry -> Maybe ListEntry) -> ListEntry -> Maybe ListEntry
 post_process func e@(File _) = func e
 post_process func (Directory path children) = func $ Directory path $ removeNothings $ fmap (post_process func) children
-
