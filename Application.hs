@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Application where
 
-import Lister(build_list, collapse_dirs, ListEntry(..), display_name, merge)
+import Lister(build_list, collapse_dirs, ListEntry(..), display_name, merge, filter_files)
 import Mime(get_videos)
 import Network.Wai (Application, responseBuilder)
 import Network.HTTP.Types.Status(ok200)
@@ -10,8 +10,9 @@ import Blaze.ByteString.Builder.ByteString(fromLazyByteString)
 import Data.Monoid ((<>), mconcat)
 import Data.ByteString.Lazy.Char8 (pack)
 import Control.Monad (join, (<=<))
-import Data.List (sort)
+import Data.List (sort, isInfixOf)
 import Network.URI (escapeURIString, isUnreserved)
+import Data.Char (toLower)
 
 escape :: Char -> Bool
 escape c = c == '/' || isUnreserved c
@@ -29,7 +30,9 @@ empty_output :: Builder
 empty_output = html_template $ fromLazyByteString "<h1>No Files Found</h1>"
 
 filters :: Maybe ListEntry -> Maybe ListEntry
-filters = join . fmap (collapse_dirs <=< get_videos)
+filters = join . fmap (collapse_dirs <=< filter_files sample_filter <=< get_videos)
+	where
+	sample_filter = not . isInfixOf "sample" . fmap toLower
 
 sort_entries :: ListEntry -> ListEntry
 sort_entries f@(File _) = f
