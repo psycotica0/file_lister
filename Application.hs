@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Application where
+module Application (app, preload_list, preloaded_app) where
 
 import Lister(build_list, collapse_dirs, ListEntry(..), display_name, merge, filter_files)
 import Mime(get_videos)
@@ -43,7 +43,13 @@ maybe_merge Nothing a = a
 maybe_merge a Nothing = a
 maybe_merge (Just a) (Just b) = Just $ merge a b
 
+preload_list :: [FilePath] -> IO (Maybe ListEntry)
+preload_list roots = fmap (fmap sort_entries . filters . foldr1 maybe_merge) $ mapM build_list roots
+
+preloaded_app :: Maybe ListEntry -> Application
+preloaded_app list req cont = cont $ responseBuilder ok200 [] $ maybe empty_output html_output list
+
 app :: [FilePath] -> Application
 app roots req cont = do
-	merged <- fmap (foldr1 maybe_merge) $ mapM build_list roots
-	cont $ responseBuilder ok200 [] $ maybe empty_output html_output $ fmap sort_entries $ filters merged
+	v <- preload_list roots
+	preloaded_app v req cont
