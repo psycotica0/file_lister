@@ -18,10 +18,10 @@ escape :: Char -> Bool
 escape c = c == '/' || isUnreserved c
 
 html_template :: Builder -> Builder
-html_template body = fromLazyByteString "<!DOCTYPE html><html><head><title>File Listing</title></head><body>" <> body <> fromLazyByteString "</body></html>"
+html_template body = fromLazyByteString "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"static/blah.css\"><title>File Listing</title></head><body>" <> body <> fromLazyByteString "</body></html>"
 
 html_output :: ListEntry -> Builder
-html_output list = html_template $ fromLazyByteString "<h1>File Listing:</h1>" <> fromLazyByteString "<ol>" <> html_output_inner list <> fromLazyByteString "</ol>"
+html_output list = html_template $ fromLazyByteString "<h1>File Listing</h1>" <> fromLazyByteString "<ol>" <> html_output_inner list <> fromLazyByteString "</ol>"
 	where
 	html_output_inner f@(File p) = mconcat $ fmap fromLazyByteString ["<li><a href=\"", pack $ escapeURIString escape p, "\">" , pack $ display_name f, "</a></li>"]
 	html_output_inner d@(Directory p children) = (mconcat $ fmap fromLazyByteString ["<li><h1>", pack $ display_name d, "</h1><ol>"]) <> mconcat (fmap html_output_inner children) <> fromLazyByteString "</ol></li>"

@@ -1,0 +1,63 @@
+a {
+    color: darkblue;
+    text-decoration: none;
+}
+
+body {
+    padding-top: 0;
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+body > h1 {
+    background: darkblue;
+    color: lightcyan;
+    margin-top: 0;
+    padding: 0.5em;
+}
+
+a:visited {
+    color: darkcyan;
+}
+
+body {
+    background-color: lightblue;
+}
+
+ol {
+    list-style: none;
+    background-color: lightblue;
+    border: thin solid lightblue;
+}
+
+body > ol > li > h1 {
+    display: none;
+}
+
+body > ol {
+    padding-left: 0;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+body > ol > li > ol {
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+li ol {
+    background-color: rgba(255,255,255,0.3)    
+}
+
+body > ol > li > ol {
+    //background-color: lightblue;
+}
+
+ol h1 {
+    font-size: 1em;
+    //font-weight: normal;
+    margin-bottom: 0.1em;
+    margin-top: 0;
+    border-bottom: thin solid lightblue;
+}
